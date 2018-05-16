@@ -2,8 +2,8 @@ import requests
 import json
 import os
 
-_MerakiToken = str(os.getenv("ACCESSTOKEN")) 
-_fwUri = 'https://n229.meraki.com/api/v0/networks/L_584905001604748446/ssids/1/l3FirewallRules'
+_MerakiToken = str(os.getenv("ACCESSTOKEN"))
+_fwUri = str(os.getenv("URL"))
 _MerakiHeader = {'X-Cisco-Meraki-API-Key': _MerakiToken, 'Content-Type': 'application/json'}
 
 
