@@ -39,6 +39,8 @@ def intent_router(event, context):
         return updateFWRules('block all traffic')
     if intent == "BlockInternetAccessIntent":
         return updateFWRules('Internet Web Access')
+    if intent == "AllowInternetAccessIntent":
+        return allowInternet('Internet Web Access')
 
     # Required Intents
     if intent == "AMAZON.CancelIntent":
@@ -59,12 +61,39 @@ def updateFWRules(rule_name):
         if(f['comment'] == rule_name):
             if (f['policy'] == 'allow'):
                 f['policy'] = 'deny'
+                answerMessage = 'I have updated the firewall rules for you'
+            else:
+                if(rule_name == 'Internet Web Access'):
+                    answerMessage = 'The internet is already blocked'
+                else: #rule_name == 'block all traffic'
+                    answerMessage = 'The traffic is already blocked'
             update.append(f)
         else:
             if(f['comment'] != 'Default rule' and f['comment'] != 'Wireless clients accessing LAN'):
                 update.append(f)
     
     responsePut = requests.put(_fwUri, data=json.dumps({'rules': update}), headers=_MerakiHeader)
-    print(responsePut)
-    answerMessage = 'I have updated the firewall rules for you'
+    return build_response(answerMessage)
+
+
+def allowInternet(rule_name):
+    answerMessage = ''
+    update = []
+    response = requests.get(_fwUri, headers=_MerakiHeader)
+    fwrules = response.json()
+    for f in fwrules:
+        if(f['comment'] == rule_name):
+            if (f['policy'] == 'deny'):
+                f['policy'] = 'allow'
+                answerMessage = 'I have updated the firewall rules for you'
+            else:
+                if(rule_name == 'Internet Web Access'):
+                    answerMessage = 'The internet is already available'
+                else: #rule_name == 'block all traffic'
+                    answerMessage = 'The traffic is already open'
+            update.append(f)
+        else:
+            if(f['comment'] != 'Default rule' and f['comment'] != 'Wireless clients accessing LAN'):
+                update.append(f)
+        responsePut = requests.put(_fwUri, data=json.dumps({'rules': update}), headers=_MerakiHeader)
     return build_response(answerMessage)
